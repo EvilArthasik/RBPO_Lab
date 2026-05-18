@@ -1,32 +1,14 @@
 package com.example.demo.repository;
 
 import com.example.demo.model.Task;
-import org.springframework.stereotype.Repository;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-@Repository
-public class TaskRepository {
-    private final Map<Long, Task> tasks = new HashMap<>();
-    private final AtomicLong counter = new AtomicLong();
+import java.util.List;
 
-    public Task save(Task task) {
-        if (task.getId() == null) {
-            task.setId(counter.incrementAndGet());
-        }
-        tasks.put(task.getId(), task);
-        return task;
-    }
+public interface TaskRepository extends JpaRepository<Task, Long> {
+    List<Task> findByProjectId(Long projectId);
 
-    public Optional<Task> findById(Long id) {
-        return Optional.ofNullable(tasks.get(id));
-    }
+    List<Task> findByAssigneeId(Long assigneeId);
 
-    public List<Task> findAll() {
-        return new ArrayList<>(tasks.values());
-    }
-
-    public void deleteById(Long id) {
-        tasks.remove(id);
-    }
+    List<Task> findByStatus(Task.TaskStatus status);
 }

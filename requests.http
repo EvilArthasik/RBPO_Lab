@@ -1,0 +1,175 @@
+@baseUrl = http://localhost:8080
+
+### PROJECT CRUD: get all projects
+GET {{baseUrl}}/api/projects
+
+### PROJECT CRUD: create project
+POST {{baseUrl}}/api/projects
+Content-Type: application/json
+
+{
+  "name": "Mobile App",
+  "description": "Tasks for mobile client"
+}
+
+### PROJECT CRUD: get project by id
+GET {{baseUrl}}/api/projects/1
+
+### PROJECT CRUD: update project
+PUT {{baseUrl}}/api/projects/1
+Content-Type: application/json
+
+{
+  "name": "RBPO Labs",
+  "description": "Updated laboratory task tracking project"
+}
+
+### PROJECT CRUD: delete project
+DELETE {{baseUrl}}/api/projects/3
+
+### USER CRUD: get all users
+GET {{baseUrl}}/api/users
+
+### USER CRUD: create user
+POST {{baseUrl}}/api/users
+Content-Type: application/json
+
+{
+  "username": "sergey",
+  "email": "sergey@example.com"
+}
+
+### USER CRUD: get user by id
+GET {{baseUrl}}/api/users/1
+
+### USER CRUD: update user
+PUT {{baseUrl}}/api/users/1
+Content-Type: application/json
+
+{
+  "username": "ivan",
+  "email": "ivan.updated@example.com"
+}
+
+### USER CRUD: delete user
+DELETE {{baseUrl}}/api/users/4
+
+### TAG CRUD: get all tags
+GET {{baseUrl}}/api/tags
+
+### TAG CRUD: create tag
+POST {{baseUrl}}/api/tags
+Content-Type: application/json
+
+{
+  "name": "review",
+  "color": "#9333EA"
+}
+
+### TAG CRUD: get tag by id
+GET {{baseUrl}}/api/tags/1
+
+### TAG CRUD: update tag
+PUT {{baseUrl}}/api/tags/1
+Content-Type: application/json
+
+{
+  "name": "backend",
+  "color": "#1D4ED8"
+}
+
+### TAG CRUD: delete tag
+DELETE {{baseUrl}}/api/tags/4
+
+### TASK CRUD: get all tasks
+GET {{baseUrl}}/api/tasks
+
+### TASK CRUD: create task
+POST {{baseUrl}}/api/tasks
+Content-Type: application/json
+
+{
+  "title": "Check API collection",
+  "description": "Run all HTTP requests from requests.http",
+  "status": "OPEN",
+  "projectId": 1,
+  "userId": 1,
+  "tagIds": [1]
+}
+
+### TASK CRUD: get task by id
+GET {{baseUrl}}/api/tasks/1
+
+### TASK CRUD: update task
+PUT {{baseUrl}}/api/tasks/1
+Content-Type: application/json
+
+{
+  "title": "Connect PostgreSQL",
+  "description": "Move CRUD operations from memory to PostgreSQL",
+  "status": "OPEN",
+  "projectId": 1,
+  "userId": 1,
+  "tagIds": [1, 2]
+}
+
+### TASK CRUD: delete task
+DELETE {{baseUrl}}/api/tasks/3
+
+### COMMENT CRUD: get all comments
+GET {{baseUrl}}/api/comments
+
+### COMMENT CRUD: create comment
+POST {{baseUrl}}/api/comments
+Content-Type: application/json
+
+{
+  "taskId": 1,
+  "userId": 1,
+  "content": "CRUD comment created from request collection"
+}
+
+### COMMENT CRUD: get comment by id
+GET {{baseUrl}}/api/comments/1
+
+### COMMENT CRUD: update comment
+PUT {{baseUrl}}/api/comments/1
+Content-Type: application/json
+
+{
+  "taskId": 1,
+  "userId": 1,
+  "content": "Updated comment text"
+}
+
+### COMMENT CRUD: delete comment
+DELETE {{baseUrl}}/api/comments/2
+
+### BUSINESS 1: assign task to user
+PATCH {{baseUrl}}/api/operations/tasks/1/assign/2
+
+### BUSINESS 2: add tag to task
+POST {{baseUrl}}/api/operations/tasks/1/tags/2
+
+### BUSINESS 3: remove tag from task
+DELETE {{baseUrl}}/api/operations/tasks/1/tags/2
+
+### BUSINESS 4: change task status with allowed transition
+PATCH {{baseUrl}}/api/operations/tasks/1/status
+Content-Type: application/json
+
+{
+  "status": "IN_PROGRESS"
+}
+
+### BUSINESS 5: add comment to task
+POST {{baseUrl}}/api/operations/tasks/1/comments
+Content-Type: application/json
+
+{
+  "userId": 2,
+  "content": "Business operation comment"
+}
+
+### BUSINESS 6: get project task summary
+GET {{baseUrl}}/api/operations/projects/1/summary

@@ -1,76 +1,53 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.TaskRequest;
 import com.example.demo.model.Task;
-import com.example.demo.repository.TaskRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.demo.service.TaskService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/tasks")
 public class TaskController {
+    private final TaskService taskService;
 
-    @Autowired
-    private TaskRepository taskRepository;
-
-    // 1. Создание (Create)
-    @PostMapping
-    public ResponseEntity<Task> createTask(@RequestBody Task task) {
-        Task savedTask = taskRepository.save(task);
-        return new ResponseEntity<>(savedTask, HttpStatus.CREATED);
+    public TaskController(TaskService taskService) {
+        this.taskService = taskService;
     }
 
-    // 2. Получение всех (Read All)
+    @PostMapping
+    public ResponseEntity<Task> createTask(@RequestBody TaskRequest request) {
+        return new ResponseEntity<>(taskService.createTask(request), HttpStatus.CREATED);
+    }
+
     @GetMapping
     public List<Task> getAllTasks() {
-        return taskRepository.findAll();
+        return taskService.getAllTasks();
     }
 
-    // 3. Получение по ID (Read One)
     @GetMapping("/{id}")
-    public ResponseEntity<Task> getTaskById(@PathVariable Long id) {
-        return taskRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public Task getTaskById(@PathVariable Long id) {
+        return taskService.getTask(id);
     }
 
-    // 4. Обновление (Update)
     @PutMapping("/{id}")
-    public ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody Task taskDetails) {
-        return taskRepository.findById(id)
-                .map(task -> {
-                    task.setTitle(taskDetails.getTitle());
-                    task.setDescription(taskDetails.getDescription());
-                    task.setStatus(taskDetails.getStatus());
-                    task.setUserId(taskDetails.getUserId());
-                    task.setProjectId(taskDetails.getProjectId());
-                    Task updated = taskRepository.save(task);
-                    return ResponseEntity.ok(updated);
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public Task updateTask(@PathVariable Long id, @RequestBody TaskRequest request) {
+        return taskService.updateTask(id, request);
     }
 
-    // 5. Удаление (Delete)
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
-        if (taskRepository.findById(id).isPresent()) {
-            taskRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
-    }
-
-    // 6. Специфичная функция: Смена статуса
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<Task> changeStatus(@PathVariable Long id, @RequestBody Task.TaskStatus newStatus) {
-        return taskRepository.findById(id)
-                .map(task -> {
-                    task.setStatus(newStatus);
-                    return ResponseEntity.ok(taskRepository.save(task));
-                })
-                .orElse(ResponseEntity.notFound().build());
+        taskService.deleteTask(id);
+        return ResponseEntity.noContent().build();
     }
 }
