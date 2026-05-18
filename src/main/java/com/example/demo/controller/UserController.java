@@ -1,7 +1,9 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.RegisterRequest;
 import com.example.demo.model.User;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,15 +22,17 @@ import java.util.List;
 @RequestMapping("/api/users")
 public class UserController {
     private final UserRepository userRepository;
+    private final AuthService authService;
 
     @Autowired
-    public UserController(UserRepository userRepository) {
+    public UserController(UserRepository userRepository, AuthService authService) {
         this.userRepository = userRepository;
+        this.authService = authService;
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        return new ResponseEntity<>(userRepository.save(user), HttpStatus.CREATED);
+    public ResponseEntity<User> createUser(@RequestBody RegisterRequest request) {
+        return new ResponseEntity<>(authService.register(request), HttpStatus.CREATED);
     }
 
     @GetMapping
@@ -49,6 +53,9 @@ public class UserController {
                 .map(user -> {
                     user.setUsername(userDetails.getUsername());
                     user.setEmail(userDetails.getEmail());
+                    if (userDetails.getRole() != null) {
+                        user.setRole(userDetails.getRole());
+                    }
                     return ResponseEntity.ok(userRepository.save(user));
                 })
                 .orElse(ResponseEntity.notFound().build());
