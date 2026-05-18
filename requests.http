@@ -4,6 +4,9 @@
 @userUsername = user
 @userPassword = Strong#456
 @csrf = replace-with-token-from-api-auth-csrf
+@accessToken = paste-access-token-from-login-or-refresh
+@refreshToken = paste-current-refresh-token
+@oldRefreshToken = paste-previous-refresh-token-after-refresh
 
 ### AUTH: register first user, first registered user becomes ADMIN
 POST {{baseUrl}}/api/auth/register
@@ -25,11 +28,40 @@ Content-Type: application/json
   "password": "{{userPassword}}"
 }
 
+### AUTH: login and get access + refresh token pair
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{adminUsername}}",
+  "password": "{{adminPassword}}"
+}
+
+### AUTH: refresh token pair, then move old refresh token to oldRefreshToken
+POST {{baseUrl}}/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### AUTH: old refresh token must fail with 401
+POST {{baseUrl}}/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{oldRefreshToken}}"
+}
+
 ### AUTH: get CSRF token
 GET {{baseUrl}}/api/auth/csrf
 Authorization: Basic {{adminUsername}} {{adminPassword}}
 
-### PROJECT CRUD: get all projects
+### PROJECT CRUD: get all projects with JWT access token
+GET {{baseUrl}}/api/projects
+Authorization: Bearer {{accessToken}}
+
+### PROJECT CRUD: get all projects with Basic Auth
 GET {{baseUrl}}/api/projects
 Authorization: Basic {{adminUsername}} {{adminPassword}}
 

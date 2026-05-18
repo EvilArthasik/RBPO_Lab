@@ -1,7 +1,10 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.RegisterRequest;
+import com.example.demo.dto.TokenPairResponse;
 import com.example.demo.exception.BadRequestException;
+import com.example.demo.exception.UnauthorizedException;
 import com.example.demo.model.User;
 import com.example.demo.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,10 +20,12 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TokenPairService tokenPairService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenPairService tokenPairService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.tokenPairService = tokenPairService;
     }
 
     @Transactional
@@ -34,6 +39,30 @@ public class AuthService {
         user.setRole(userRepository.countByPasswordHashIsNotNull() == 0 ? User.Role.ADMIN : User.Role.USER);
 
         return userRepository.save(user);
+    }
+
+    @Transactional
+    public TokenPairResponse login(LoginRequest request) {
+        if (request == null || isBlank(request.getUsername()) || isBlank(request.getPassword())) {
+            throw new UnauthorizedException("Username and password are required");
+        }
+
+        User user = userRepository.findByUsername(request.getUsername().trim())
+                .or(() -> userRepository.findByEmail(request.getUsername().trim()))
+                .orElseThrow(() -> new UnauthorizedException("Invalid username or password"));
+        if (user.getPasswordHash() == null || !passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            throw new UnauthorizedException("Invalid username or password");
+        }
+
+        return tokenPairService.issueTokenPair(user);
+    }
+
+    @Transactional
+    public TokenPairResponse refresh(String refreshToken) {
+        if (isBlank(refreshToken)) {
+            throw new UnauthorizedException("Refresh token is required");
+        }
+        return tokenPairService.refresh(refreshToken);
     }
 
     private void validateRegistration(RegisterRequest request) {

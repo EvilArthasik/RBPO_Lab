@@ -1,7 +1,10 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.AuthUserResponse;
+import com.example.demo.dto.LoginRequest;
+import com.example.demo.dto.RefreshRequest;
 import com.example.demo.dto.RegisterRequest;
+import com.example.demo.dto.TokenPairResponse;
 import com.example.demo.service.AuthService;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.http.HttpStatus;
@@ -25,6 +28,16 @@ public class AuthController {
     public ResponseEntity<AuthUserResponse> register(@RequestBody RegisterRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(AuthUserResponse.from(authService.register(request)));
+    }
+
+    @PostMapping("/login")
+    public TokenPairResponse login(@RequestBody LoginRequest request) {
+        return authService.login(request);
+    }
+
+    @PostMapping("/refresh")
+    public TokenPairResponse refresh(@RequestBody RefreshRequest request) {
+        return authService.refresh(request == null ? null : request.getRefreshToken());
     }
 
     @GetMapping("/csrf")

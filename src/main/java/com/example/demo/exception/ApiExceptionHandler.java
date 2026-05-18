@@ -20,4 +20,10 @@ public class ApiExceptionHandler {
         return ResponseEntity.badRequest()
                 .body(Map.of("error", exception.getMessage()));
     }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<Map<String, String>> handleUnauthorized(UnauthorizedException exception) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", exception.getMessage()));
+    }
 }
