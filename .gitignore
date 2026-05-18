@@ -1,6 +1,14 @@
 HELP.md
 target/
 .env
+certs/
+*.jks
+*.p12
+*.pfx
+*.key
+*.csr
+*.crt
+*.cer
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/

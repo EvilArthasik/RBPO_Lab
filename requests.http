@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:8080
+@baseUrl = https://localhost:8080
 @adminUsername = admin
 @adminPassword = Strong#123
 @userUsername = user

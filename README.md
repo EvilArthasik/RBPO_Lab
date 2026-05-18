@@ -127,6 +127,78 @@ $env:JAVA_HOME="C:\Program Files\Eclipse Adoptium\jdk-21.0.11.10-hotspot"
 
 При первом запуске Spring Boot создаст таблицы по JPA-сущностям и добавит только справочные записи проектов и тегов из `src/main/resources/data.sql`. Пользователи не добавляются через SQL или код.
 
+## HTTPS и цепочка сертификатов
+
+Для задания 6 сервис переключен на TLS через переменные окружения Spring Boot. В репозиторий не добавляются приватные ключи, keystore, CSR и сертификаты: они генерируются локально и игнорируются через `.gitignore`.
+
+Идентификатор студента в цепочке сертификатов: `1BIB23219`.
+
+Цепочка состоит из трех звеньев:
+
+- `rbpo-root-ca-1BIB23219` - корневой CA;
+- `rbpo-intermediate-ca-1BIB23219` - промежуточный CA;
+- `rbpo-service-1BIB23219` - серверный сертификат для `localhost`.
+
+Сгенерировать цепочку:
+
+```powershell
+.\scripts\generate-tls-chain.ps1 -StudentId "1BIB23219"
+```
+
+Скрипт попросит пароль для keystore. Пароль можно также передать только через переменную окружения текущей сессии:
+
+```powershell
+$env:TLS_KEYSTORE_PASSWORD="your-local-password"
+.\scripts\generate-tls-chain.ps1 -StudentId "1BIB23219"
+```
+
+После генерации включи TLS для запуска приложения:
+
+```powershell
+$env:SERVER_SSL_ENABLED="true"
+$env:SERVER_SSL_KEY_STORE="certs/local/rbpo-service-1BIB23219.p12"
+$env:SERVER_SSL_KEY_STORE_PASSWORD="your-local-password"
+$env:SERVER_SSL_KEY_STORE_TYPE="PKCS12"
+$env:SERVER_SSL_KEY_ALIAS="rbpo-service-1bib23219"
+.\mvnw.cmd spring-boot:run
+```
+
+API будет доступен по адресу `https://localhost:8080`. В `requests.http` базовый URL уже переключен на HTTPS.
+
+Чтобы браузер доверял локальному сертификату, добавь корневой сертификат `certs/local/rbpo-root-ca-1BIB23219.crt` в доверенные корневые центры сертификации Windows. PowerShell от имени администратора:
+
+```powershell
+certutil -addstore -f "Root" "certs\local\rbpo-root-ca-1BIB23219.crt"
+```
+
+Если браузер использует собственное хранилище сертификатов, импортируй этот же root CA в настройки браузера как доверенный центр сертификации.
+
+## CI
+
+Проект размещен на GitHub, поэтому приватный ключ и пароль для CI должны храниться в GitHub Secrets, а не в файлах репозитория.
+
+Workflow `.github/workflows/ci.yml` выполняет:
+
+- checkout исходного кода;
+- установку JDK 21;
+- компиляцию `./mvnw -B compile`;
+- тесты `./mvnw -B test`;
+- упаковку `./mvnw -B package -DskipTests`;
+- загрузку jar-файла из `target/*.jar` в GitHub Actions Artifacts.
+
+Для хранения keystore в GitHub Secrets можно использовать:
+
+- `APP_KEYSTORE_BASE64` - содержимое `rbpo-service-1BIB23219.p12`, закодированное в Base64;
+- `APP_KEYSTORE_PASSWORD` - пароль от keystore.
+
+Получить Base64 локально в PowerShell:
+
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("certs\local\rbpo-service-1BIB23219.p12"))
+```
+
+Секрет `APP_KEYSTORE_BASE64` не публикуется как артефакт. Workflow восстанавливает keystore только во временную директорию runner'а и загружает в артефакты только собранный jar.
+
 ## Проверка
 
 Проверить сборку:
